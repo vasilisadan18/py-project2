@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: telegram-fitness-bot
+    name: telegram-bot-tracker
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
     envVars:
-      - key: TELEGRAM_TOKEN
+      - key: BOT_TOKEN
         sync: false
-      - key: OPENWEATHER_API_KEY
+      - key: WEATHER_API_KEY
         sync: false

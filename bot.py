@@ -26,7 +26,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    logger.info("dotenv успешно загружен")
+except ImportError:
+    logger.warning("dotenv не установлен, используем другие варианты")
 class LoggingMiddleware(BaseMiddleware):
     async def __call__(
         self,
@@ -73,6 +78,8 @@ METS = {
     "велосипед": 8.0,
     "плавание": 6.0,
     "прогулка": 2.0,
+    "тренажеры": 7.0,
+    "йога": 3.0,
     "default": 1.0
 }
 dp = Dispatcher(storage=MemoryStorage())
@@ -126,13 +133,13 @@ async def get_food_calories(product_name: str) -> float:
     url = f"https://world.openfoodfacts.org/cgi/search.pl?action=process&search_terms={encoded}&json=1&page_size=20"
     
     try:
-        timeout = aiohttp.ClientTimeout(total=10)  # Увеличено
+        timeout = aiohttp.ClientTimeout(total=20)  
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url) as resp:
-                print(f"Status: {resp.status} for '{product_name}'")  # Дебаг
+                print(f"Status: {resp.status} for '{product_name}'") 
                 if resp.status == 200:
                     data = await resp.json()
-                    print(f"Count: {data.get('count',0)}")  # Дебаг
+                    print(f"Count: {data.get('count',0)}") 
                     products = data.get('products', [])
                     if products:
                         calories = products[0].get('nutriments', {}).get('energy-kcal_100g', 0)
