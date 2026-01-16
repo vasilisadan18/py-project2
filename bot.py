@@ -26,12 +26,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-    logger.info("dotenv успешно загружен")
-except ImportError:
-    logger.warning("dotenv не установлен, используем другие варианты")
+logger.info(f"dotenv загружен, BOT_TOKEN: {'*'*10}{BOT_TOKEN[-5:]}")
 class LoggingMiddleware(BaseMiddleware):
     async def __call__(
         self,
@@ -347,31 +342,42 @@ async def delete_day(message: Message):
         
 @dp.message(CommandStart())
 async def start(message: Message):
+    logger.info(f"/start command from user {message.from_user.id}")
     await message.answer(
-        "Привет! Я бот для трекинга воды, калорий и активности.\n"
+        "Привет! Я бот для трекинга воды, калорий и активности.\n\n"
         "Команды:\n"
-        "/set_profile - настройка\n"
-        "/log_water <мл> - вода\n"
-        "/log_food <еда> - еда\n"
-        "/log_workout <тип> <мин> - тренировка\n"
-        "/delete_day - сброс дня"
-        "/check_progress - прогресс"
+        "/set_profile - настройка профиля\n"
+        "/log_water <мл> - записать выпитую воду\n"
+        "/log_food <еда> - записать съеденную еду\n"
+        "/log_workout <тип> <мин> - записать тренировку\n"
+        "/check_progress - посмотреть прогресс\n"
+        "/delete_day - сбросить дневные данные\n\n"
+        "Начните с команды /set_profile"
     )
 
 async def main():
-    if not BOT_TOKEN:
-        logger.error("BOT_TOKEN не найден!")
-        return
+    logger.info("Бот запускается...")
     
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-  
-    logger.info("Бот запускается...")
+    
+    # Проверяем подключение
+    try:
+        me = await bot.get_me()
+        logger.info(f"Бот подключен: @{me.username} ({me.full_name})")
+    except Exception as e:
+        logger.error(f"Ошибка подключения бота: {e}")
+        return
+    
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     try:
+        logger.info("Запуск бота")
         asyncio.run(main())
+        
     except KeyboardInterrupt:
-        logger.info("Бот остановлен пользователем")
+        logger.info("Бот остановлен")
     except Exception as e:
-        logger.error(f"Бот выдает ошибку: {e}")
+        logger.error(f"Ошибка: {e}")
+        import time
+        time.sleep(2)
